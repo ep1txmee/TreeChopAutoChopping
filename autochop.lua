@@ -147,6 +147,57 @@ for i = 1,7 do
 end
 
 ---------------------------------------------------
+-- Auto Clicker Section
+---------------------------------------------------
+
+local clickRemote = game:GetService("ReplicatedStorage")
+    :WaitForChild("Remotes")
+    :WaitForChild("ProgressionClick")
+
+local autoClicking = false
+
+local separator = Instance.new("TextLabel")
+separator.Size = UDim2.new(1,0,0,20)
+separator.BackgroundTransparency = 1
+separator.Text = "Auto Clicker"
+separator.Font = Enum.Font.GothamBold
+separator.TextSize = 14
+separator.TextColor3 = Color3.fromRGB(255,255,255)
+separator.Parent = holder
+
+local autoClickButton = Instance.new("TextButton")
+autoClickButton.Size = UDim2.new(1,0,0,28)
+autoClickButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
+autoClickButton.TextColor3 = Color3.new(1,1,1)
+autoClickButton.Font = Enum.Font.Gotham
+autoClickButton.TextSize = 13
+autoClickButton.Text = "Auto Click: OFF"
+autoClickButton.Parent = holder
+
+local acCorner = Instance.new("UICorner")
+acCorner.CornerRadius = UDim.new(0,6)
+acCorner.Parent = autoClickButton
+
+autoClickButton.MouseButton1Click:Connect(function()
+    autoClicking = not autoClicking
+
+    if autoClicking then
+        autoClickButton.Text = "Auto Click: ON"
+        autoClickButton.BackgroundColor3 = Color3.fromRGB(0,170,127)
+
+        task.spawn(function()
+            while autoClicking do
+                clickRemote:FireServer()
+                task.wait(0.1)
+            end
+        end)
+    else
+        autoClickButton.Text = "Auto Click: OFF"
+        autoClickButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    end
+end)
+
+---------------------------------------------------
 -- Minimize / Close
 ---------------------------------------------------
 
@@ -166,4 +217,9 @@ end)
 close.MouseButton1Click:Connect(function()
     stop()
     gui:Destroy()
+        close.MouseButton1Click:Connect(function()
+    stop() -- Stops auto chop
+    autoClicking = false -- Stops auto clicker
+    gui:Destroy()
+ end)
 end)
