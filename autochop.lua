@@ -1,11 +1,13 @@
--- LocalScript (StarterPlayerScripts or StarterGui)
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 
-local remote = ReplicatedStorage
+---------------------------------------------------
+-- REMOTES (your existing ones)
+---------------------------------------------------
+
+local treeRemote = ReplicatedStorage
     :WaitForChild("Packages")
     :WaitForChild("Main")
     :WaitForChild("DataService")
@@ -14,62 +16,68 @@ local remote = ReplicatedStorage
     :WaitForChild("TreeService")
     :WaitForChild("RemoteEvent")
 
+local clickRemote = ReplicatedStorage
+    :WaitForChild("Remotes")
+    :WaitForChild("ProgressionClick")
+
 ---------------------------------------------------
 -- GUI
 ---------------------------------------------------
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "TreeTester"
+gui.Name = "DevTestGui"
 gui.ResetOnSpawn = false
-gui.Parent = player.PlayerGui
+gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(180, 250)
-frame.Position = UDim2.new(0.02,0,0.25,0)
-frame.BackgroundColor3 = Color3.fromRGB(32,32,32)
+frame.Size = UDim2.fromOffset(200, 320)
+frame.Position = UDim2.new(0.03,0,0.25,0)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0,10)
-corner.Parent = frame
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
+
+---------------------------------------------------
+-- TOP BAR
+---------------------------------------------------
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,-50,0,28)
+title.Size = UDim2.new(1,-60,0,28)
 title.Position = UDim2.new(0,8,0,0)
 title.BackgroundTransparency = 1
-title.Text = "Tree Tester"
+title.Text = "Dev Test Panel"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 14
-title.TextColor3 = Color3.new(1,1,1)
+title.TextColor3 = Color3.fromRGB(255,255,255)
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
--- Minimize
 local minimize = Instance.new("TextButton")
 minimize.Size = UDim2.fromOffset(20,20)
 minimize.Position = UDim2.new(1,-44,0,4)
 minimize.BackgroundTransparency = 1
-minimize.BorderSizePixel = 0
 minimize.Text = "-"
 minimize.TextColor3 = Color3.fromRGB(255,255,255)
 minimize.Font = Enum.Font.GothamBold
 minimize.TextSize = 16
 minimize.Parent = frame
 
--- Close
 local close = Instance.new("TextButton")
 close.Size = UDim2.fromOffset(20,20)
 close.Position = UDim2.new(1,-22,0,4)
 close.BackgroundTransparency = 1
-close.BorderSizePixel = 0
 close.Text = "X"
 close.TextColor3 = Color3.fromRGB(255,255,255)
 close.Font = Enum.Font.GothamBold
 close.TextSize = 14
 close.Parent = frame
+
+---------------------------------------------------
+-- CONTENT HOLDER
+---------------------------------------------------
 
 local holder = Instance.new("Frame")
 holder.BackgroundTransparency = 1
@@ -82,56 +90,41 @@ layout.Padding = UDim.new(0,4)
 layout.Parent = holder
 
 ---------------------------------------------------
--- Logic
+-- STATE
 ---------------------------------------------------
 
 local currentTree = nil
-local running = false
+local treeRunning = false
+local autoClicking = false
+local minimized = false
 
-local function stop()
-    running = false
+local function stopTrees()
+    treeRunning = false
     currentTree = nil
 end
 
-local function start(tree)
-    stop()
-
-    currentTree = tree
-    running = true
-
-    task.spawn(function()
-        while running and currentTree == tree do
-            remote:FireServer("requestChop", tree)
-            task.wait(0.1)
-        end
-    end)
-end
-
 ---------------------------------------------------
--- Buttons
+-- TREE AUTO CHOP
 ---------------------------------------------------
 
 for i = 1,7 do
     local tree = "Tree"..i
 
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1,0,0,28)
-    button.BackgroundColor3 = Color3.fromRGB(50,50,50)
-    button.TextColor3 = Color3.new(1,1,1)
-    button.Font = Enum.Font.Gotham
-    button.TextSize = 13
-    button.Text = tree
-    button.Parent = holder
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1,0,0,26)
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.Text = tree
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 13
+    btn.Parent = holder
 
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0,6)
-    c.Parent = button
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
 
-    button.MouseButton1Click:Connect(function()
-
+    btn.MouseButton1Click:Connect(function()
         if currentTree == tree then
-            stop()
-            button.BackgroundColor3 = Color3.fromRGB(50,50,50)
+            stopTrees()
+            btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
             return
         end
 
@@ -141,49 +134,51 @@ for i = 1,7 do
             end
         end
 
-        button.BackgroundColor3 = Color3.fromRGB(0,170,127)
-        start(tree)
+        btn.BackgroundColor3 = Color3.fromRGB(0,170,127)
+
+        stopTrees()
+        currentTree = tree
+        treeRunning = true
+
+        task.spawn(function()
+            while treeRunning and currentTree == tree do
+                treeRemote:FireServer("requestChop", tree)
+                task.wait(0.1)
+            end
+        end)
     end)
 end
 
 ---------------------------------------------------
--- Auto Clicker Section
+-- AUTO CLICKER
 ---------------------------------------------------
 
-local clickRemote = game:GetService("ReplicatedStorage")
-    :WaitForChild("Remotes")
-    :WaitForChild("ProgressionClick")
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1,0,0,18)
+label.BackgroundTransparency = 1
+label.Text = "Auto Clicker"
+label.Font = Enum.Font.GothamBold
+label.TextSize = 13
+label.TextColor3 = Color3.fromRGB(255,255,255)
+label.Parent = holder
 
-local autoClicking = false
+local autoBtn = Instance.new("TextButton")
+autoBtn.Size = UDim2.new(1,0,0,26)
+autoBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+autoBtn.Text = "OFF"
+autoBtn.TextColor3 = Color3.fromRGB(255,255,255)
+autoBtn.Font = Enum.Font.Gotham
+autoBtn.TextSize = 13
+autoBtn.Parent = holder
 
-local separator = Instance.new("TextLabel")
-separator.Size = UDim2.new(1,0,0,20)
-separator.BackgroundTransparency = 1
-separator.Text = "Auto Clicker"
-separator.Font = Enum.Font.GothamBold
-separator.TextSize = 14
-separator.TextColor3 = Color3.fromRGB(255,255,255)
-separator.Parent = holder
+Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0,6)
 
-local autoClickButton = Instance.new("TextButton")
-autoClickButton.Size = UDim2.new(1,0,0,28)
-autoClickButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
-autoClickButton.TextColor3 = Color3.new(1,1,1)
-autoClickButton.Font = Enum.Font.Gotham
-autoClickButton.TextSize = 13
-autoClickButton.Text = "Auto Click: OFF"
-autoClickButton.Parent = holder
-
-local acCorner = Instance.new("UICorner")
-acCorner.CornerRadius = UDim.new(0,6)
-acCorner.Parent = autoClickButton
-
-autoClickButton.MouseButton1Click:Connect(function()
+autoBtn.MouseButton1Click:Connect(function()
     autoClicking = not autoClicking
 
     if autoClicking then
-        autoClickButton.Text = "Auto Click: ON"
-        autoClickButton.BackgroundColor3 = Color3.fromRGB(0,170,127)
+        autoBtn.Text = "ON"
+        autoBtn.BackgroundColor3 = Color3.fromRGB(0,170,127)
 
         task.spawn(function()
             while autoClicking do
@@ -192,34 +187,28 @@ autoClickButton.MouseButton1Click:Connect(function()
             end
         end)
     else
-        autoClickButton.Text = "Auto Click: OFF"
-        autoClickButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
+        autoBtn.Text = "OFF"
+        autoBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
     end
 end)
 
 ---------------------------------------------------
--- Minimize / Close
+-- MINIMIZE / CLOSE
 ---------------------------------------------------
-
-local minimized = false
 
 minimize.MouseButton1Click:Connect(function()
     minimized = not minimized
     holder.Visible = not minimized
 
     if minimized then
-        frame.Size = UDim2.fromOffset(180,32)
+        frame.Size = UDim2.fromOffset(200,32)
     else
-        frame.Size = UDim2.fromOffset(180,250)
+        frame.Size = UDim2.fromOffset(200,320)
     end
 end)
 
 close.MouseButton1Click:Connect(function()
-    stop()
+    stopTrees()
+    autoClicking = false
     gui:Destroy()
-        close.MouseButton1Click:Connect(function()
-    stop() -- Stops auto chop
-    autoClicking = false -- Stops auto clicker
-    gui:Destroy()
- end)
 end)
