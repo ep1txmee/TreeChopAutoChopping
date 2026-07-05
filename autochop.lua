@@ -78,25 +78,3 @@ for i = 1,7 do
         start(tree)
     end)
 end
-
----------------------------------------------------
--- Minimize / Close
----------------------------------------------------
-
-local minimized = false
-
-minimize.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    holder.Visible = not minimized
-
-    if minimized then
-        frame.Size = UDim2.fromOffset(180,32)
-    else
-        frame.Size = UDim2.fromOffset(180,250)
-    end
-end)
-
-close.MouseButton1Click:Connect(function()
-    stop()
-    gui:Destroy()
-end)
