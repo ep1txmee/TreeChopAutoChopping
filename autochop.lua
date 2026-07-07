@@ -49,18 +49,24 @@ title.Parent = frame
 local minimize = Instance.new("TextButton")
 minimize.Size = UDim2.fromOffset(20,20)
 minimize.Position = UDim2.new(1,-44,0,4)
+minimize.BackgroundTransparency = 1
+minimize.BorderSizePixel = 0
 minimize.Text = "-"
+minimize.TextColor3 = Color3.fromRGB(255,255,255)
 minimize.Font = Enum.Font.GothamBold
-minimize.TextSize = 14
+minimize.TextSize = 16
 minimize.Parent = frame
 
 -- Close
 local close = Instance.new("TextButton")
 close.Size = UDim2.fromOffset(20,20)
 close.Position = UDim2.new(1,-22,0,4)
+close.BackgroundTransparency = 1
+close.BorderSizePixel = 0
 close.Text = "X"
+close.TextColor3 = Color3.fromRGB(255,255,255)
 close.Font = Enum.Font.GothamBold
-close.TextSize = 12
+close.TextSize = 14
 close.Parent = frame
 
 local holder = Instance.new("Frame")
