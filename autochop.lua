@@ -17,7 +17,7 @@ local remote = ReplicatedStorage
 ---------------------------------------------------
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "TreeTester"
+gui.Name = "TreeAutoChop"
 gui.ResetOnSpawn = false
 gui.Parent = player.PlayerGui
 
@@ -38,7 +38,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,-50,0,28)
 title.Position = UDim2.new(0,8,0,0)
 title.BackgroundTransparency = 1
-title.Text = "Tree Tester"
+title.Text = "Tree Auto Chop [OP]"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 14
 title.TextColor3 = Color3.new(1,1,1)
